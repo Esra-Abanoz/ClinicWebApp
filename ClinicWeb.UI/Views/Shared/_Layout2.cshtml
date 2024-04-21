@@ -1,0 +1,641 @@
+﻿@using ClinicWeb.Repository.Helpers
+@using ClinicWeb.Models.Enums
+@inherits ClinicWeb.UI.Views.RazorPageViewBase
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>İhtiyaç Yönetim Bilgi Sistemi</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css" />
+ <link rel="stylesheet" href="~/bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="~/bower_components/Ionicons/css/ionicons.min.css">
+
+    <link rel="stylesheet" href="~/dist/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="~/dist/css/skins/_all-skins.min.css">
+    <link rel="stylesheet" href="~/bower_components/bootstrap-daterangepicker/daterangepicker.css">
+    <link href="~/bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/Grid/Content/gijgo.min.css" rel="stylesheet" />
+    <script src="~/dist/js/moment.min.js"></script>
+    <script src="~/js/date.format.js"></script>
+    <link href="~/dist/css/notifIt.css" rel="stylesheet" />
+    <script src="~/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="~/bower_components/jquery-ui/jquery-ui.js"></script>
+    <script src="~/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="~/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="~/bower_components/fastclick/lib/fastclick.js"></script>
+    <script src="~/Grid/Scripts/gijgo.min.js"></script>
+    <link href="~/css/bootstrap.min.css" rel="stylesheet" />
+
+
+    <link href="~/contextmenu/jquery.contextMenu.min.css" rel="stylesheet" />
+    <script src="~/contextmenu/jquery.contextMenu.min.js"></script>
+    <script src="~/contextmenu/jquery.ui.position.js"></script>
+    
+
+    @*<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" type="text/css" />*@
+    <script src="~/dist/js/notifIt.min.js"></script>
+    <link href="~/dist/css/daterangepicker.css" rel="stylesheet" />
+    <script src="~/dist/js/daterangepicker.js"></script>
+    <link href="~/Login/vendor/select2/select2.css" rel="stylesheet" />
+    <script src="~/Login/vendor/select2/select2.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+    <script type="text/javascript">
+        function floatTurkishFormat(num) {
+            var numFormat = new Intl.NumberFormat('tr-TR', {});
+            return numFormat.format(num);
+        }
+        
+        $(document).ajaxComplete(function (event, xhr, options) {
+            /* Gridlerde anlamsızca arkaya request atıyor hata geldiğinde aynı hata mesajını birden fazla döndürmemesi için bu şekilde yapıldı.*/
+            if (xhr.status == 302) {
+                var locationHeader = xhr.getResponseHeader('Location');
+                if (locationHeader == undefined || locationHeader == null || locationHeader.length <= 0) {
+                    locationHeader = '/Account/Index';
+                }
+                window.location = locationHeader;
+            }
+        });
+    </script>
+</head>
+<style>
+    .container {
+        margin-top: 10px;
+    }
+
+    .modal-dialog {
+        margin-top: 25%;
+    }
+
+    .hizala {
+        top: 5% !important;
+    }
+
+    .nav-tabs > li {
+        position: relative;
+    }
+
+        .nav-tabs > li > a {
+            display: inline-block;
+        }
+
+        .nav-tabs > li > span {
+            display: none;
+            cursor: pointer;
+            position: absolute;
+            right: 3px;
+            top: 12px;
+            color: purple;
+        }
+
+        .nav-tabs > li:hover > span {
+            display: inline-block;
+        }
+</style>
+<body class="hold-transition sidebar-mini skin-black ">
+    <div class="wrapper">
+        <header class="main-header">
+            <a href="@Url.Action("DashBoard","Home")" class="logo">
+                <span class="logo-mini"><b>İY</b>BS</span>
+                <span class="logo-lg"><b>İY</b>BS</span>
+            </a>
+            <nav class="navbar navbar-static-top">
+                <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+                    <span class="sr-only">Toggle navigation</span>
+                </a>
+                <span class="navbar-header" style=" margin-top: 13px; color: #fff; font-size: 18px;font-weight: normal">@(SessionHelper.DefaultSession.HastaneAdi)</span>
+                <div class="navbar-custom-menu">
+                    <ul class="nav navbar-nav">
+                        <li class="dropdown messages-menu">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <i class="fa fa-envelope-o"></i>
+                                <span class="label label-success">4</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li class="header">You have 4 messages</li>
+                                <li>
+                                    <ul class="menu">
+                                        <li>
+                                            <!-- start message -->
+                                            <a href="#">
+                                                <div class="pull-left">
+                                                    <img src="~/dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
+                                                </div>
+                                                <h4>
+                                                    Support Team
+                                                    <small><i class="fa fa-clock-o"></i> 5 mins</small>
+                                                </h4>
+                                                <p>Why not buy a new awesome theme?</p>
+                                            </a>
+                                        </li>
+                                        <!-- end message -->
+                                    </ul>
+                                </li>
+                                <li class="footer"><a href="#">See All Messages</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown user user-menu">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <span class="hidden-xs">@(SessionHelper.DefaultSession.AdSoyad) &nbsp; &nbsp;</span><i class="fa fa-power-off" aria-hidden="true"></i>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li class="header">
+                                    <a href="@Url.Action("LogOff", "Account")">
+                                        <i class="fa fa-power-off text-red" aria-hidden="true"></i> Çıkış Yap
+                                    </a>
+                                </li>
+                                <li class="header">
+                                    <a href="#" onclick="KullaniciSifreDegistir()">
+                                        <i class="fa fa-lock text-info"></i> Şifre Değiştirme
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+        <aside class="main-sidebar">
+            <!-- sidebar: style can be found in sidebar.less -->
+            <section class="sidebar">
+                <ul class="sidebar-menu" data-widget="tree">
+                    <li class="header">İhtiyaç Yönetim Bilgi Sistemi</li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-dashboard"></i> <span>Kullanıcı İşlemleri</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.KullaniciTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('KullaniciTanimlama');"><i class="fa fa-circle-o"></i> Kullanıcı Tanımlama</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.HastaneTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('HastaneTanimlama');"><i class="fa fa-circle-o"></i> Hastane Tanımlama</a></li>
+                            }
+                        </ul>
+                    </li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-dashboard"></i> <span>Genel Tanımlamalar</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.RolTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('RolTanimlama');"><i class="fa fa-times-rectangle"></i> Rol Tanımlama</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.GorevTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('GorevTanimlama');"><i class="fa fa-circle-o"></i> Görev Tanımlama</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.BankaTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('BankaTanimlama');"><i class="fa fa-circle-o"></i> Banka Tanımlama</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.SubeTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('SubeTanimlama');"><i class="fa fa-circle-o"></i> Şube Tanımlama</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.FirmaTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('FirmaTanimlama');"><i class="fa fa-circle-o"></i> Firma Tanımlama</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.StokTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('StokTanimlama');"><i class="fa fa-circle-o"></i> Stok Tanımlama</a></li>
+                            }
+                        </ul>
+                    </li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-dashboard"></i> <span>İhale İşlemleri</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @*<li><a href="#" onclick="SekmeAc('RolTanimlama');"><i class="fa fa-circle-o"></i> Rol Tanımları</a></li>*@
+                        </ul>
+                    </li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-dashboard"></i> <span>Doğrudan Temin İşlemleri</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @*<li><a href="#" onclick="SekmeAc('RolTanimlama');"><i class="fa fa-circle-o"></i> Rol Tanımları</a></li>*@
+                        </ul>
+                    </li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-dashboard"></i> <span>Talep İşlemleri</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @*<li><a href="#" onclick="SekmeAc('RolTanimlama');"><i class="fa fa-circle-o"></i> Rol Tanımları</a></li>*@
+                        </ul>
+                    </li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-dashboard"></i> <span>Yaklaşık Maliyet Araştırması</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @*<li><a href="#" onclick="SekmeAc('RolTanimlama');"><i class="fa fa-circle-o"></i> Rol Tanımları</a></li>*@
+                        </ul>
+                    </li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-dashboard"></i> <span>Sipariş – Teslimat</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            @*<li><a href="#" onclick="SekmeAc('RolTanimlama');"><i class="fa fa-circle-o"></i> Rol Tanımları</a></li>*@
+                        </ul>
+                    </li>
+                    <li class="treeview">
+
+
+                        <a href="#">
+                            <i class="fa fa-dashboard"></i> <span>Muhasebe İşlemleri</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.KodTanimlari))
+                            {
+                                <li class="treeview">
+                                    <a href="#">
+                                        <i class="fa fa-circle-o"></i> Kod Tanımlama
+                                        <span class="pull-right-container">
+                                            <i class="fa fa-angle-left pull-right"></i>
+                                        </span>
+                                    </a>
+                                    <ul class="treeview-menu">
+
+                                        <li><a href="#" onclick="SekmeAc('KurumsalKodTanimlama');"><i class="fa fa-circle-o"></i>Kurumsal Kod Tanımlama</a></li>
+                                        <li><a href="#" onclick="SekmeAc('EkonomikKodTanimlama');"><i class="fa fa-circle-o"></i>Ekonomik Kod Tanımlama</a></li>
+                                        <li><a href="#" onclick="SekmeAc('FinansmanKodTanimlama');"><i class="fa fa-circle-o"></i>Finansman Kod Tanımlama</a></li>
+                                        <li><a href="#" onclick="SekmeAc('FonksiyonelKodTanimlama');"><i class="fa fa-circle-o"></i>Fonksiyonel Kod Tanımlama</a></li>
+                                    </ul>
+                                </li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.MuhasebeKurumTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('MuhasebeKurumTanimlama');"><i class="fa fa-circle-o"></i> Muhasebe Kurum Tanımlama</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.ImzaKisiTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('ImzaKisiTanimlama');"><i class="fa fa-circle-o"></i>İmza Kişi Tanımlama</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.HesapTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('HesapTanimlama');"><i class="fa fa-circle-o"></i>Hesap Tanımlama</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.ButceTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('ButceTanimlama');"><i class="fa fa-circle-o"></i>Bütçe Tanımlama</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.ButceHesapEslestirme))
+                            {
+                                <li><a href="#" onclick="SekmeAc('ButceHesapEslestir');"><i class="fa fa-circle-o"></i>Bütçe Hesap Eşleştirme</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.FisGrubuTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('FisGrubuTanimlama');"><i class="fa fa-circle-o"></i>Fiş Grubu Tanımlama</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.IcraTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('IcraTanimlama');"><i class="fa fa-circle-o"></i>İcra Tanımlama</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.TeminatTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('TeminatTanimlama');"><i class="fa fa-circle-o"></i>Teminat Tanımlama</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.TeslimTutanagiTanimlari))
+                            {
+                                <li><a href="#" onclick="SekmeAc('TeslimTutanagiTanimlama');"><i class="fa fa-circle-o"></i>Teslim Tutanağı Tanımlama</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.MuhasebeIslemFisiTanimlama))
+                            {
+                                <li><a href="#" onclick="SekmeAc('MuhasebeIslemFisiTanimlama');"><i class="fa fa-circle-o"></i>Muhasebe Fişleri</a></li>
+                            }
+                        </ul>
+                    </li>
+
+
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-dashboard"></i> <span>Muhasebe Raporları</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.MizanRaporu))
+                            {
+                                <li><a href="#" onclick="SekmeAc('MizanRaporu');"><i class="fa fa-circle-o"></i>Mizan Raporu</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.YevmiyeDefteriRaporu))
+                            {
+                                <li><a href="#" onclick="SekmeAc('YevmiyeDefteriRaporu');"><i class="fa fa-circle-o"></i>Yevmiye Defteri Raporu</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.YardimciDefterRaporu))
+                            {
+                                <li><a href="#" onclick="SekmeAc('YardımcıDefterRaporu');"><i class="fa fa-circle-o"></i>Yardımcı Defter Raporu</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.FirmaKesintiRaporu))
+                            {
+                                <li><a href="#" onclick="SekmeAc('FirmaKesintiRaporu');"><i class="fa fa-circle-o"></i>Firma Kesinti Raporu</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.FirmaBorcRaporu))
+                            {
+                                <li><a href="#" onclick="SekmeAc('FirmaBorçRaporu');"><i class="fa fa-circle-o"></i>Firma Borç Raporu</a></li>
+                            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.ButceTakipTutarRaporu))
+                            {
+                                <li><a href="#" onclick="SekmeAc('BütçeTakipTutarRaporu');"><i class="fa fa-circle-o"></i>Bütçe Takip Tutar Raporu</a></li>
+                            }
+                        </ul>
+                    </li>
+
+
+
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-dashboard"></i> <span>Duyuru İşlemleri</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.DuyuruTanimlama))
+                            {
+                                <li><a href="#" onclick="SekmeAc('DuyuruTanimlama');"><i class="fa fa-circle-o"></i>Duyuru Tanımlama</a></li>
+                            }
+                      
+                        </ul>
+                    </li>
+                </ul>
+            </section>
+        </aside>
+        <div class="content-wrapper">
+            <section class="content">
+                <div class="nav-tabs-custom" id="tabs">
+                    <ul class="nav nav-tabs" id="nav-tabs">
+                    </ul>
+                    <div class="tab-content" id="tabdetail">
+                    </div>
+                </div>
+                @RenderBody()
+
+                <div class="dialog" id="dialog-KullaniciSifreDegistirme" style="display: none">
+                    <div class="kullanicisifredegistirmeview">
+                        @await Component.InvokeAsync("KullaniciSifreDegistirme")
+                    </div>
+                </div>
+            </section>
+        </div>
+        <footer class="main-footer">
+            <div class="pull-right hidden-xs">
+                <b>Version</b> 1.0
+            </div>
+            <strong>Copyright &copy; @DateTime.Now.Year</strong>
+        </footer>
+    </div>
+    <script src="~/dist/js/adminlte.min.js"></script>
+    <script src="~/dist/js/demo.js"></script>
+    <script type="text/javascript">
+        function checkURL(newpath) {
+
+            if (typeof newpath === "undefined") {
+                newpath = window.location.pathname + window.location.search + window.location.hash;
+            }
+            if (newpath !== lasturl) {
+                lasturl = newpath;
+                load_content(newpath);
+            }
+
+        }
+        $('.route').click(function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            var url = $(this).attr('href');
+
+            return false;
+
+        });
+        var dialogSifreDegistirme;
+        $(document).ready(function () {
+            $('.sidebar-menu').tree();
+
+
+             dialogSifreDegistirme= $("#dialog-KullaniciSifreDegistirme").dialog({
+                 height: 350,
+                 width: 600,
+                 resizable: false,
+                 position: ['center'],
+                autoOpen: false,
+            });
+
+
+
+
+
+
+
+        });
+        $("#nav-tabs ").on("click", "span", function () {
+            var anchor = $(this).siblings('a');
+            $(anchor.attr('href')).remove();
+            $(this).parent().remove();
+            $("#nav-tabs li").children('a').first().click();
+        });
+
+        function SekmeAc(isim) {
+            var num_tabs = $("div#tabs > ul li").length + 1;
+            $("#tabs > ul li ").removeClass("active");
+            $("#tabdetail div").removeClass("active");
+            if ($("#tab" + isim).length == 0) {
+                $("#tabs > ul").append(
+                    "<li class='active'><a data-toggle='tab' aria-expanded='true' href='#tab" + isim + "'> " + isim + " </a> <span>  <i class='fa fa-times-rectangle' style='margin-left:5px'></i> </span></li>"
+                );
+                $("#tabdetail").append("<div class='tab-pane active'  id='tab" + isim + "'></div>");
+                var url = "";
+                if (isim == 'RolTanimlama') {
+                    url = '@Url.Action("RolTanimlama", "GenelTanimlamalar")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'GorevTanimlama') {
+                    url = '@Url.Action("GorevTanimlama", "GenelTanimlamalar")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'BankaTanimlama') {
+                    url = '@Url.Action("BankaTanimlama", "BankaSubeTanimlari")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'SubeTanimlama') {
+                    url = '@Url.Action("SubeTanimlama", "BankaSubeTanimlari")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'FirmaTanimlama') {
+                    url = '@Url.Action("FirmaTanimlama", "GenelTanimlamalar")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'KullaniciTanimlama') {
+                    url = '@Url.Action("KullaniciTanimlama", "KullaniciIslemleri")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'HastaneTanimlama') {
+                    url = '@Url.Action("HastaneTanimlama", "KullaniciIslemleri")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'StokTanimlama') {
+                    url = '@Url.Action("StokTanimlama", "GenelTanimlamalar")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'KurumsalKodTanimlama') {
+                    url = '@Url.Action("KurumsalKodTanimlama", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'EkonomikKodTanimlama') {
+                    url = '@Url.Action("EkonomikKodTanimlama", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'FinansmanKodTanimlama') {
+                    url = '@Url.Action("FinansmanKodTanimlama", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'FonksiyonelKodTanimlama') {
+                    url = '@Url.Action("FonksiyonelKodTanimlama", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'MuhasebeKurumTanimlama') {
+                    url = '@Url.Action("MuhasebeKurumTanimlama", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'ImzaKisiTanimlama') {
+                    url = '@Url.Action("ParafciTanimlama", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'MizanRaporu') {
+                    url = '@Url.Action("MizanRaporu", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'YevmiyeDefteriRaporu') {
+                    url = '@Url.Action("YevmiyeDefteriRaporu", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'YardımcıDefterRaporu') {
+                    url = '@Url.Action("YardimciDefterRaporu", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'FirmaKesintiRaporu') {
+                    url = '@Url.Action("FirmaKesintiListesiRaporu", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'FirmaBorçRaporu') {
+                    url = '@Url.Action("FirmaBorcListesiRaporu", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'BütçeTakipTutarRaporu') {
+                    url = '@Url.Action("ButceTutarTakipListesiRaporu", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'HesapTanimlama') {
+                    url = '@Url.Action("HesapTanimlama", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'FisGrubuTanimlama') {
+                    url = '@Url.Action("FisGrubuTanimlama", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'ButceTanimlama') {
+                    url = '@Url.Action("ButceTanimlama", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'ButceHesapEslestir') {
+                    url = '@Url.Action("ButceHesapEslestir", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'IcraTanimlama') {
+                    url = '@Url.Action("IcraTanimlama", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'TeminatTanimlama') {
+                    url = '@Url.Action("TeminatTanimlama", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'TeslimTutanagiTanimlama') {
+                    url = '@Url.Action("TeslimTutanagiTanimlama", "Muhasebe")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'MuhasebeIslemFisiTanimlama') {
+                    url = '@Url.Action("MuhasebeIslemFisiTanimlama", "MuhasebeIslemFisi")';
+                    $('#tab' + isim).load(url);
+                }
+                if (isim == 'DuyuruTanimlama') {
+                    url = '@Url.Action("DuyuruTanimlama", "Duyuru")';
+                    $('#tab' + isim).load(url);
+                }
+                
+
+                history.pushState(null, null, url);
+                /*   checkURL(url);*/
+            } else {
+                $('a[href="#tab'+isim+'"]').click();
+
+            }
+        }
+        //function checkURL(newpath) {
+
+        //        if (typeof newpath === "undefined") {
+        //            newpath = window.location.pathname + window.location.search + window.location.hash;
+        //        }
+        //        //if (newpath !== lasturl) {
+        //        //    lasturl = newpath;
+        //        //    load_content(newpath);
+        //        //}
+
+        //    }
+        document.onkeyup = function (e) {
+            if (e.ctrlKey && e.altKey && e.which === 77) {
+                window.open('@Url.Action("Index", "Monitor")',
+                    'Sql Monitör',
+                    'toolbar=no,location=no,directories=no,status=no, menubar=no,scrollbars=no,resizable=no,width=800,height=800');
+            }
+        };
+        function KullaniciSifreDegistir() {
+            $.ajax({
+                    url: "/KullaniciIslemleri/GetKullaniciSifreDegistirViewComponent",
+                    type: "GET"
+                })
+                .done(function (data) {
+                    $(".kullanicisifredegistirmeview").html(data);
+                    dialogSifreDegistirme.open("Şifre Değiştirme");
+                });
+        }
+
+
+    </script>
+</body>
+</html>

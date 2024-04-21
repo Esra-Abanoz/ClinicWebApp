@@ -1,0 +1,18 @@
+{
+  "ReportingServicePort": 4020,
+  "RedisCache": {
+    "Host": "localhost",
+    "Port": 6379,
+    "DefaultDataBase": null,
+    "UserName": "",
+    "Password": ""
+  },
+  "Database": {
+    "Host": "37.247.104.251",
+    "Port": 5432,
+    "DefaultDatabase": "altiva",
+    "DefaultSearchPath": "merkezisatinalma",
+    "UserName": "postgres",
+    "Password": "frRVTuYZTkKeqe8g45wx5rgU4WC/6QJ2qMT7ptF9SAOtcJ8JQIZRsPf81w9ktjD8g+i9qGll/sYRzJw4KcUi/i6Y5EI+hyPl3keJHL1IXJTP51jzfSN0E5JT/GXLqKa8etZdgE8qOj7QhvNXsQFoowY0z6wDeZi4rkM1rJhvfz4mB0IuHA1yFvM1Qap5sprn"
+  }
+}

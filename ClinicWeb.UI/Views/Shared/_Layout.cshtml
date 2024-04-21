@@ -1,0 +1,2895 @@
+﻿@using System.IO
+@using ClinicWeb.Repository.Helpers
+@using ClinicWeb.Models.Enums
+@using Microsoft.AspNetCore.Hosting
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@inherits ClinicWeb.UI.Views.RazorPageViewBase
+@inject IWebHostEnvironment webHostEnvironment
+@{
+    var jsFileList = new List<string>();
+    var jsFilesFolder = new DirectoryInfo(System.IO.Path.Combine(webHostEnvironment.WebRootPath, "EXT/PageJs"));
+    if (jsFilesFolder.Exists)
+    {
+        var jsFiles = jsFilesFolder.GetFiles("*.js", SearchOption.AllDirectories);
+        if (jsFiles != null && jsFiles.Length > 0)
+        {
+            foreach (var jsFile in jsFiles)
+            {
+                jsFileList.Add(jsFile.FullName.Replace(webHostEnvironment.WebRootPath + System.IO.Path.DirectorySeparatorChar.ToString(), "~/").Replace(System.IO.Path.DirectorySeparatorChar.ToString(), "/"));
+            }
+        }
+    }
+}
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>İhtiyaç Yönetim Bilgi Sistemi</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <script src="~/EXT/extjs/include-ext.js"></script>
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <link rel="stylesheet" type="text/css" href="@Url.Action("IconCssResource", "Resources")" />
+    <script src="~/dist/js/moment.min.js" asp-append-version="true"></script>
+    <script src="~/js/filedownload.js" asp-append-version="true"></script>
+    @foreach (var jsFile in jsFileList)
+    {
+        <script src="@jsFile" asp-append-version="true"></script>
+    }
+
+<script type="text/javascript">
+        Ext = window.Ext || {};
+
+        $(document).ajaxSend(function (event, xhr, options) {
+            var el, em = options.eventMask || {}
+            if (em.showMask === true) {
+
+                if (!Ext.isEmpty(em.customTarget, false) && Ext.isEmpty(em.target, false)) {
+                    em.target = "customtarget";
+                }
+                switch (em.target || "page") {
+                    case "page":
+                        el = Ext.getBody();
+                        break;
+                    case "customtarget":
+                        var trg = em.customTarget || "";
+                        if (!Ext.isEmpty(trg)) {
+                            el = Ext.getCmp(trg);
+                        }
+                        break;
+                }
+                if (!Ext.isEmpty(el)) {
+                    el.mask(em.msg || Ext.view.AbstractView.prototype.loadingText, em.msgCls || Ext.LoadMask.prototype.msgCls);
+                    options.maskEl = el;
+                }
+            }
+        }).ajaxComplete(function (event, xhr, options) {
+            if (options.maskEl !== undefined && options.maskEl !== null) {
+                var delay = 0,
+                    em = options.eventMask || {},
+                    remove,
+                    task;
+                if (em && em.minDelay) {
+                    delay = em.minDelay;
+                }
+                remove = (em.target || "page") == "page";
+                remove = false;
+                task = new Ext.util.DelayedTask(Ext.CustomFunctions.removeMaskDelay, this, [options.maskEl, remove]).delay(delay);
+            }
+        });
+
+        Ext.onReady(function () {
+
+
+            Ext.require([
+                'Ext.*'
+            ]);
+
+            var kullaniciIslemleriMenuItems = [];
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.HastaneTanimlari))
+        {
+            <text>
+                    kullaniciIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Hastane Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('HastaneTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Hastane Tanımlama',
+                                    id: 'HastaneTanimlamaTab',
+                                    itemId: 'HastaneTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [hastaneTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+         @if (SessionHelper.YetkiKontrol(YetkiEnum.KullaniciTanimlari))
+        {
+            <text>
+                    kullaniciIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Kullanıcı Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('KullaniciTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Kullanıcı Tanımlama',
+                                    id: 'KullaniciTanimlamaTab',
+                                    itemId: 'KullaniciTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [kullaniciTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+
+        }   
+        
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.KullaniciBolumTanimlari))
+            {
+                <text>
+                    kullaniciIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Kullanıcı Bölüm Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('KullaniciBolumTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Kullanıcı Bölüm Tanımlama',
+                                    id: 'KullaniciBolumTanimlamaTab',
+                                    itemId: 'KullaniciBolumTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [KullaniciBolumTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+            }
+                            @if (SessionHelper.YetkiKontrol(YetkiEnum.RolTanimlari))
+        {
+            <text>
+                    kullaniciIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Rol(Yetki) Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('RolTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Rol Tanımlama',
+                                    id: 'RolTanimlamaTab',
+                                    itemId: 'RolTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [rolTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+                @if (SessionHelper.YetkiKontrol(YetkiEnum.GorevTanimlari))
+        {
+            <text>
+                    kullaniciIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Görev(ünvan) Tanımları',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('GorevTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Görev Tanımlama',
+                                    id: 'GorevTanimlamaTab',
+                                    itemId: 'GorevTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [GorevTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        } 
+
+
+
+
+
+
+       
+       
+            @if (SessionHelper.YetkiKontrol(YetkiEnum.SatinAlmaAktifGorevliHavuzu))
+                                                   {
+                                                       <text>
+                            kullaniciIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'İhale Dosya Kullanıcı (Yetkilendirme)',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('AktifGorevliHavuzuTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                            title: 'İhale Dosya Kullanıcı (Yetkilendirme)',
+                                    id: 'AktifGorevliHavuzuTanimlamaTab',
+                                    itemId: 'AktifGorevliHavuzuTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [SatinAlmaKullaniciGorevleriGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+      }
+
+        @**********************************************************************************@
+
+                               var genelTanimlamaMenuItems = [];
+      // @if (SessionHelper.YetkiKontrol(YetkiEnum.RolTanimlari))
+      // {
+      //     <text>
+      //             genelTanimlamaMenuItems.push({
+      //                 iconCls: 'customicon-page',
+      //                 text: 'Rol Tanımlama',
+      //                 handler: function (item, e) {
+      //                     var tabPanel = Ext.getCmp('MainTabPanel');
+      //                     var tab = tabPanel.getChildByElement('RolTanimlamaTab');
+      //                     if (tab == null) {
+      //                         tab = tabPanel.add({
+      //                             closable: true,
+      //                             title: 'Rol Tanımlama',
+      //                             id: 'RolTanimlamaTab',
+      //                             itemId: 'RolTanimlamaTab',
+      //                             layout: {
+      //                                 type: 'vbox',
+      //                                 align: 'stretch'
+      //                             },
+      //                             items: [rolTanimlamaGetir.pencereGetir()]
+      //                         });
+      //                     }
+      //                     tabPanel.setActiveTab(tab);
+      //                 }
+      //             });
+      //     </text>
+      // }
+     //  @if (SessionHelper.YetkiKontrol(YetkiEnum.GorevTanimlari))
+     //  {
+     //      <text>
+     //              genelTanimlamaMenuItems.push({
+     //                  iconCls: 'customicon-page',
+     //                  text: 'Görev(ünvan) Tanımlama',
+     //                  handler: function (item, e) {
+     //                      var tabPanel = Ext.getCmp('MainTabPanel');
+     //                      var tab = tabPanel.getChildByElement('GorevTanimlamaTab');
+     //                      if (tab == null) {
+     //                          tab = tabPanel.add({
+     //                              closable: true,
+     //                              title: 'Görev Tanımlama',
+     //                              id: 'GorevTanimlamaTab',
+     //                              itemId: 'GorevTanimlamaTab',
+     //                              layout: {
+     //                                  type: 'vbox',
+     //                                  align: 'stretch'
+     //                              },
+     //                              items: [GorevTanimlamaGetir.pencereGetir()]
+     //                          });
+     //                      }
+     //                      tabPanel.setActiveTab(tab);
+     //                  }
+     //              });
+     //      </text>
+     //  } 
+
+              @if (SessionHelper.YetkiKontrol(YetkiEnum.SatinAlmaVarsayilanDegerTanimlama))
+                        {
+                            <text>
+                    genelTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Bölüm Ön Tanımları',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('SatinAlmaVarsayilanDegerTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Bölüm Ön Tanımları',
+                                    id: 'SatinAlmaVarsayilanDegerTanimlamaTab',
+                                    itemId: 'SatinAlmaVarsayilanDegerTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [SatinAlmaVarsayilanTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+                        }
+
+
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.SartnameDosya))
+             {
+                 <text>
+                    genelTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Teknik Şartname Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('SartnameTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Sartname Tanımlama',
+                                    id: 'SartnameTanimlamaTab',
+                                    itemId: 'SartnameTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [SatinAlmaSartnameGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+             }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.BankaTanimlari))
+        {
+            <text>
+                    genelTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Banka Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('BankaTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Banka Tanımlama',
+                                    id: 'BankaTanimlamaTab',
+                                    itemId: 'BankaTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [bankaTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.SubeTanimlari))
+        {
+            <text>
+                    genelTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Banka Şube Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('SubeTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Şube Tanımlama',
+                                    id: 'SubeTanimlamaTab',
+                                    itemId: 'SubeTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [subeTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.FirmaTanimlari))
+        {
+            <text>
+                    genelTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Firma Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('FirmaTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Firma Tanımlama',
+                                    id: 'FirmaTanimlamaTab',
+                                    itemId: 'FirmaTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [firmaTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.StokTanimlari))
+        {
+            <text>
+                    genelTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Stok Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('StokTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Stok Tanımlama',
+                                    id: 'StokTanimlamaTab',
+                                    itemId: 'StokTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [stokTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }     @if (SessionHelper.YetkiKontrol(YetkiEnum.SutKodlariTanimlari))
+        {
+            <text>
+                    genelTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Sut Kodları Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('SutKodlariTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Sut Kodları Tanımlama',
+                                    id: 'SutKodlariTanimlamaTab',
+                                    itemId: 'SutKodlariTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [SutKodlariTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.StokAmbarTanimlari))
+        {
+            <text>
+                    genelTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Stok Ambar Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('StokAmbarTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Stok Ambar Tanımlama',
+                                    id: 'StokAmbarTanimlamaTab',
+                                    itemId: 'StokAmbarTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [StokAmbarTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }        @if (SessionHelper.YetkiKontrol(YetkiEnum.StokGrupTanimlari))
+        {
+            <text>
+                    genelTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Stok Grup Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('StokGrupTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Stok Grup Tanımlama',
+                                    id: 'StokGrupTanimlamaTab',
+                                    itemId: 'StokGrupTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [StokGrupTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.BirimTanimlari))
+        {
+            <text>
+                    genelTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Birim Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('BirimTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Birim Tanımlama',
+                                    id: 'BirimTanimlamaTab',
+                                    itemId: 'BirimTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [BirimTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.ApiConnectTanimlari))
+        {
+            <text>
+                    genelTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Api Connect Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('ApiConnectTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Api Connect Tanımlama',
+                                    id: 'ApiConnectTanimlamaTab',
+                                    itemId: 'ApiConnectTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [ApiConnectTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.MkysIslemleri))
+        {
+            <text>
+                    genelTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Mkys İşlemleri',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('MkysIslemleriTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Mkys İşlemleri',
+                                    id: 'MkysIslemleriTab',
+                                    itemId: 'MkysIslemleriTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [MkysIslemleriGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.YasakliFirmaSorgulama))
+        {
+            <text>
+                    genelTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Yasaklı Firma Sorgulama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('YasakliFirmaSorgulamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Yasaklı Firma Sorgulama',
+                                    id: 'YasakliFirmaSorgulamaTab',
+                                    itemId: 'YasakliFirmaSorgulamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [YasakliFirmaSorgulamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @**********************************************************************************@
+               var talepIslemleriMenuItems = [];
+
+
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.SatinAlmaTalep))
+        {
+            <text>
+                    talepIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Talep Giriş',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('SatinAlmaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Satın Alma',
+                                    id: 'SatinAlmaTab',
+                                    itemId: 'SatinAlmaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [SatinAlmaTalepListesiGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }    @if (SessionHelper.YetkiKontrol(YetkiEnum.IhtiyacTespit))
+             {
+                 <text>
+                    talepIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'İhtiyaç Tespit',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('IhtiyacTespitTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'İhtiyaç Tespit',
+                                    id: 'IhtiyacTespitTab',
+                                    itemId: 'IhtiyacTespitTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [IhtiyacTespitListesiTabGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+             } @if (SessionHelper.YetkiKontrol(YetkiEnum.TalepKarsilamaIsTakip))
+               {
+                   <text>
+                    talepIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Satınalma Birimi Talep Karşılama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('TalepKarsilamaIsTakipTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                            title: 'Satınalma Birimi Talep Karşılama',
+                                    id: 'TalepKarsilamaIsTakipTab',
+                                    itemId: 'TalepKarsilamaIsTakipTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [SatinAlmaIsTakipListesiGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+               }
+                @if (SessionHelper.YetkiKontrol(YetkiEnum.KarsilanmayanTalepListesi))
+                {
+                    <text>
+                    talepIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Karşılanmayan Talep Listesi',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('KarsilanmayanTalepListesiTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Karşılanmayan Talep Listesi',
+                                    id: 'KarsilanmayanTalepListesiTab',
+                                    itemId: 'KarsilanmayanTalepListesiTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [KarsilanmayanTalepGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+                }
+                @if (SessionHelper.YetkiKontrol(YetkiEnum.KarsilanmayanTalepListesi))
+                {
+                    <text>
+                    talepIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Depo Sorgulama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('DepoSorgulamaListesiTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Depo Sorgulama Listesi',
+                                    id: 'DepoSorgulamaListesiTab',
+                                    itemId: 'DepoSorgulamaListesiTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [DepoSorgulamaListesiGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+                }
+          @**********************************************************************************@
+        var muhasebeIslemleriMenuItems = [];
+
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.MuhasebeIslemFisiTanimlama))
+        {
+            <text>
+                    muhasebeIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Muhasebe İşlem Fisi Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('MuhasebeIslemFisiTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Muhasebe İşlem Fişi Tanımlama',
+                                    id: 'MuhasebeIslemFisiTanimlamaTab',
+                                    itemId: 'MuhasebeIslemFisiTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [muhasebeIslemFisiTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.MuhasebeIslemFatura))
+        {
+            <text>
+                    muhasebeIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Muhasebe İşlem Fatura',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('MuhasebeIslemFaturaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Muhasebe İşlem Fatura',
+                                    id: 'MuhasebeIslemFaturaTab',
+                                    itemId: 'MuhasebeIslemFaturaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [MuhasebeIslemFaturaTabGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.KodTanimlari))
+        {
+            // <text>
+            //         muhasebeIslemleriMenuItems.push({
+            //             iconCls: 'customicon-page',
+            //             text: 'Kurumsal Kod Tanımlama',
+            //             handler: function (item, e) {
+            //                 var tabPanel = Ext.getCmp('MainTabPanel');
+            //                 var tab = tabPanel.getChildByElement('KurumsalKodTanimlamaTab');
+            //                 if (tab == null) {
+            //                     tab = tabPanel.add({
+            //                         closable: true,
+            //                         title: 'Kurumsal Kod Tanımlama',
+            //                         id: 'KurumsalKodTanimlamaTab',
+            //                         itemId: 'KurumsalKodTanimlamaTab',
+            //                         layout: {
+            //                             type: 'vbox',
+            //                             align: 'stretch'
+            //                         },
+            //                         items: [kurumsalKodTanimlamaGetir.pencereGetir()]
+            //                     });
+            //                 }
+            //                 tabPanel.setActiveTab(tab);
+            //             }
+            //         });
+            //     muhasebeIslemleriMenuItems.push({
+            //         iconCls: 'customicon-page',
+            //         text: 'Ekonomik Kod Tanımlama',
+            //         handler: function (item, e) {
+            //             var tabPanel = Ext.getCmp('MainTabPanel');
+            //             var tab = tabPanel.getChildByElement('EkonomikKodTanimlamaTab');
+            //             if (tab == null) {
+            //                 tab = tabPanel.add({
+            //                     closable: true,
+            //                     title: 'Ekonomik Kod Tanımlama',
+            //                     id: 'EkonomikKodTanimlamaTab',
+            //                     itemId: 'EkonomikKodTanimlamaTab',
+            //                     layout: {
+            //                         type: 'vbox',
+            //                         align: 'stretch'
+            //                     },
+            //                     items: [ekonomikKodTanimlamaGetir.pencereGetir()]
+            //                 });
+            //             }
+            //             tabPanel.setActiveTab(tab);
+            //         }
+            //     });
+            //     muhasebeIslemleriMenuItems.push({
+            //         iconCls: 'customicon-page',
+            //         text: 'Finansman Kod Tanımlama',
+            //         handler: function (item, e) {
+            //             var tabPanel = Ext.getCmp('MainTabPanel');
+            //             var tab = tabPanel.getChildByElement('FinansmanKodTanimlamaTab');
+            //             if (tab == null) {
+            //                 tab = tabPanel.add({
+            //                     closable: true,
+            //                     title: 'Finansman Kod Tanımlama',
+            //                     id: 'FinansmanKodTanimlamaTab',
+            //                     itemId: 'FinansmanKodTanimlamaTab',
+            //                     layout: {
+            //                         type: 'vbox',
+            //                         align: 'stretch'
+            //                     },
+            //                     items: [finansmanKodTanimlamaGetir.pencereGetir()]
+            //                 });
+            //             }
+            //             tabPanel.setActiveTab(tab);
+            //         }
+            //     });
+            //     muhasebeIslemleriMenuItems.push({
+            //         iconCls: 'customicon-page',
+            //         text: 'Fonksiyonel Kod Tanımlama',
+            //         handler: function (item, e) {
+            //             var tabPanel = Ext.getCmp('MainTabPanel');
+            //             var tab = tabPanel.getChildByElement('FonksiyonelKodTanimlamaTab');
+            //             if (tab == null) {
+            //                 tab = tabPanel.add({
+            //                     closable: true,
+            //                     title: 'Fonksiyonel Kod Tanımlama',
+            //                     id: 'FonksiyonelKodTanimlamaTab',
+            //                     itemId: 'FonksiyonelKodTanimlamaTab',
+            //                     layout: {
+            //                         type: 'vbox',
+            //                         align: 'stretch'
+            //                     },
+            //                     items: [fonksiyonelKodTanimlamaGetir.pencereGetir()]
+            //                 });
+            //             }
+            //             tabPanel.setActiveTab(tab);
+            //         }
+            //     });
+            // </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.MuhasebeKurumTanimlari))
+        {
+            <text>
+                    muhasebeIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Muhasebe Kurum Tanımları',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('MuhasebeKurumTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                            title: 'Muhasebe Kurum Tanımları',
+                                    id: 'MuhasebeKurumTanimlamaTab',
+                                    itemId: 'MuhasebeKurumTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [muhasebeKurumTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+
+
+
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.ImzaKisiTanimlari))
+        {
+            <text>
+                    muhasebeIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'İmza Kişi Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('ImzaKisiTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'İmza Kişi Tanımlama',
+                                    id: 'ImzaKisiTanimlamaTab',
+                                    itemId: 'ImzaKisiTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [parafciTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.HesapTanimlari))
+        {  <text>
+                    muhasebeIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Hesap Plan Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('HesapPlanTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Hesap Plan Tanımlama',
+                                    id: 'HesapPlanTanimlamaTab',
+                                    itemId: 'HesapPlanTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [MuhasebeHesapPlanGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+
+
+    //        <text>
+    //                muhasebeIslemleriMenuItems.push({
+    //                    iconCls: 'customicon-page',
+    //                    text: 'Hesap Tanımlama',
+    //                    handler: function (item, e) {
+    //                        var tabPanel = Ext.getCmp('MainTabPanel');
+    //                        var tab = tabPanel.getChildByElement('HesapTanimlamaTab');
+    //                        if (tab == null) {
+    //                            tab = tabPanel.add({
+    //                                closable: true,
+    //                                title: 'Hesap Tanımlama',
+    //                                id: 'HesapTanimlamaTab',
+    //                                itemId: 'HesapTanimlamaTab',
+    //                                layout: {
+    //                                    type: 'vbox',
+    //                                    align: 'stretch'
+    //                                },
+    //                                items: [hesapTanimlamaGetir.pencereGetir()]
+    //                            });
+    //                        }
+    //                        tabPanel.setActiveTab(tab);
+    //                    }
+    //                });
+    //        </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.ButceTanimlari))
+        {
+          //  <text>
+          //          muhasebeIslemleriMenuItems.push({
+          //              iconCls: 'customicon-page',
+          //              text: 'Bütçe Tanımlama',
+          //              handler: function (item, e) {
+          //                  var tabPanel = Ext.getCmp('MainTabPanel');
+          //                  var tab = tabPanel.getChildByElement('ButceTanimlamaTab');
+          //                  if (tab == null) {
+          //                      tab = tabPanel.add({
+          //                          closable: true,
+          //                          title: 'Bütçe Tanımlama',
+          //                          id: 'ButceTanimlamaTab',
+          //                          itemId: 'ButceTanimlamaTab',
+          //                          layout: {
+          //                              type: 'vbox',
+          //                              align: 'stretch'
+          //                          },
+          //                          items: [butceTanimlamaGetir.pencereGetir()]
+          //                      });
+          //                  }
+          //                  tabPanel.setActiveTab(tab);
+          //              }
+          //          });
+          //  </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.ButceHesapEslestirme))
+        {
+          // <text>
+          //         muhasebeIslemleriMenuItems.push({
+          //             iconCls: 'customicon-page',
+          //             text: 'Bütçe Hesap Eşleştirme',
+          //             handler: function (item, e) {
+          //                 var tabPanel = Ext.getCmp('MainTabPanel');
+          //                 var tab = tabPanel.getChildByElement('ButceHesapEslestirmeTab');
+          //                 if (tab == null) {
+          //                     tab = tabPanel.add({
+          //                         closable: true,
+          //                         title: 'Bütçe Hesap Eşleştirme',
+          //                         id: 'ButceHesapEslestirmeTab',
+          //                         itemId: 'ButceHesapEslestirmeTab',
+          //                         layout: {
+          //                             type: 'vbox',
+          //                             align: 'stretch'
+          //                         },
+          //                         items: [butceHesapEslestirGetir.pencereGetir()]
+          //                     });
+          //                 }
+          //                 tabPanel.setActiveTab(tab);
+          //             }
+          //         });
+          // </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.FisGrubuTanimlari))
+        {
+           <text>
+                   muhasebeIslemleriMenuItems.push({
+                       iconCls: 'customicon-page',
+                       text: 'Fiş Grubu Tanımlama',
+                       handler: function (item, e) {
+                           var tabPanel = Ext.getCmp('MainTabPanel');
+                           var tab = tabPanel.getChildByElement('FisGrubuTanimlamaTab');
+                           if (tab == null) {
+                               tab = tabPanel.add({
+                                   closable: true,
+                                   title: 'Fiş Grubu Tanımlama',
+                                   id: 'FisGrubuTanimlamaTab',
+                                   itemId: 'FisGrubuTanimlamaTab',
+                                   layout: {
+                                       type: 'vbox',
+                                       align: 'stretch'
+                                   },
+                                   items: [fisGrubuTanimlamaGetir.pencereGetir()]
+                               });
+                           }
+                           tabPanel.setActiveTab(tab);
+                       }
+                   });
+           </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.IcraTanimlari))
+        {
+            <text>
+                    muhasebeIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'İcra Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('IcraTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Icra Tanımlama',
+                                    id: 'IcraTanimlamaTab',
+                                    itemId: 'IcraTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [icraTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+
+
+
+        // @if (SessionHelper.YetkiKontrol(YetkiEnum.TeminatTanimlari))
+        // {
+        //     <text>
+        //             muhasebeIslemleriMenuItems.push({
+        //                 iconCls: 'customicon-page',
+        //                 text: 'Teminat Tanımlama',
+        //                 handler: function (item, e) {
+        //                     var tabPanel = Ext.getCmp('MainTabPanel');
+        //                     var tab = tabPanel.getChildByElement('TeminatTanimlamaTab');
+        //                     if (tab == null) {
+        //                         tab = tabPanel.add({
+        //                             closable: true,
+        //                             title: 'Teminat Tanımlama',
+        //                             id: 'TeminatTanimlamaTab',
+        //                             itemId: 'TeminatTanimlamaTab',
+        //                             layout: {
+        //                                 type: 'vbox',
+        //                                 align: 'stretch'
+        //                             },
+        //                             items: [teminatTanimlamaGetir.pencereGetir()]
+        //                         });
+        //                     }
+        //                     tabPanel.setActiveTab(tab);
+        //                 }
+        //             });
+        //     </text>
+        // } 
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.TeminatTanimlari))
+        {
+            <text>
+                    muhasebeIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Teminat Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('TeminatTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Teminat Tanımlama',
+                                    id: 'TeminatTanimlamaTab',
+                                    itemId: 'TeminatTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                                items: [MuhasebeTeminatTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.TeslimTutanagiTanimlari))
+        {
+            <text>
+                    muhasebeIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Teslim Tutanağı Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('TeslimTutanagiTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Teslim Tutanağı Tanımlama',
+                                    id: 'TeslimTutanagiTanimlamaTab',
+                                    itemId: 'TeslimTutanagiTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [teslimTutanagiTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.MuhasebeIslemButceListesi))
+        {
+            <text>
+                    muhasebeIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Bütçe Plan Tanımla',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('MuhasebeIslemButceListesiTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Muhasebe İşlem Bütçe',
+                                    id: 'MuhasebeIslemButceListesiTab',
+                                            itemId: 'MuhasebeIslemButceListesiTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [MuhasebeButceListesiGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+
+        @**********************************************************************************@
+                                                    var muhasebeRaporlariMenuItems = [];
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.MizanRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Ana Mizan Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('MizanRaporuTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Ana Mizan Raporu',
+                                    id: 'MizanRaporuTab',
+                                    itemId: 'MizanRaporuTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [mizanRaporuGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.AyrintiliMizanRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Ayrıntılı Mizan Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('AyrintiliMizanRaporuTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: ' Ayrıntılı Ana Mizan Raporu',
+                                    id: 'AyrintiliMizanRaporuTab',
+                                    itemId: 'AyrintiliMizanRaporuTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [AyrintiliMizanRaporuGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.YevmiyeDefteriRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Yevmiye Defteri Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('YevmiyeDefteriRaporuTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Yevmiye Defteri Raporu',
+                                    id: 'YevmiyeDefteriRaporuTab',
+                                    itemId: 'YevmiyeDefteriRaporuTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [yevmiyeDefteriRaporuGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.YardimciDefterRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Yardımcı Defter Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('YardimciDefterRaporuTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Yardımcı Defter Raporu',
+                                    id: 'YardimciDefterRaporuTab',
+                                    itemId: 'YardimciDefterRaporuTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [yardimciDefterRaporuGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.FirmaKesintiRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Firma Kesinti Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('FirmaKesintiRaporuTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Firma Kesinti Raporu',
+                                    id: 'FirmaKesintiRaporuTab',
+                                    itemId: 'FirmaKesintiRaporuTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [firmaKesintiRaporuGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.FirmaBorcRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Firma Borç Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('FirmaBorcRaporuTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Firma Borç Raporu',
+                                    id: 'FirmaBorcRaporuTab',
+                                    itemId: 'FirmaBorcRaporuTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [firmaBorcListesiRaporuGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.ButceTakipTutarRaporu))
+        {
+         //   <text>
+         //           muhasebeRaporlariMenuItems.push({
+         //               iconCls: 'customicon-page',
+         //               text: 'Bütçe Takip Tutar Raporu',
+         //               handler: function (item, e) {
+         //                   var tabPanel = Ext.getCmp('MainTabPanel');
+         //                   var tab = tabPanel.getChildByElement('ButceTakipTutarRaporuTab');
+         //                   if (tab == null) {
+         //                       tab = tabPanel.add({
+         //                           closable: true,
+         //                           title: 'Bütçe Takip Tutar Raporu',
+         //                           id: 'ButceTakipTutarRaporuTab',
+         //                           itemId: 'ButceTakipTutarRaporuTab',
+         //                           layout: {
+         //                               type: 'vbox',
+         //                               align: 'stretch'
+         //                           },
+         //                           items: [butceTutarTakipRaporuGetir.pencereGetir()]
+         //                       });
+         //                   }
+         //                   tabPanel.setActiveTab(tab);
+         //               }
+         //           });
+         //   </text>
+        }    @if (SessionHelper.YetkiKontrol(YetkiEnum.AvansTakipRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Avas Takip Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('AvansTakipRaporuTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Avans Takip Raporu',
+                                    id: 'AvansTakipRaporuTab',
+                                    itemId: 'AvansTakipRaporuTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [AvansTakipRaporuGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }  @if (SessionHelper.YetkiKontrol(YetkiEnum.MuhasebeGiderRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Muhasebe Gelir/Gider Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('MuhasebeGiderRaporuTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Muhasebe Gelir/Gider Raporu',
+                                    id: 'MuhasebeGiderRaporuTab',
+                                    itemId: 'MuhasebeGiderRaporuTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [MuhasebeGiderListesiRaporuGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }@if (SessionHelper.YetkiKontrol(YetkiEnum.MuavinDefterRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Muavin Defter Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('MuavinDefterRaporuTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Muavin Defter Raporu',
+                                    id: 'MuavinDefterRaporuTab',
+                                    itemId: 'MuavinDefterRaporuTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [MuavinDefteriRaporuGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }@if (SessionHelper.YetkiKontrol(YetkiEnum.BilancoRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Bilanço Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('BilancoRaporuTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Bilanço Raporu',
+                                    id: 'BilancoRaporuTab',
+                                    itemId: 'BilancoRaporuTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [BilancoRaporuGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+
+
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.CariKartRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Cari Kart Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('CariKartRaporuTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Cari Kart Raporu',
+                                    id: 'CariKartRaporuTab',
+                                    itemId: 'CariKartRaporuTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [CariKartRaporuGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+
+
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.DamgaVergisiRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Damga Vergisi Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('DamgaVergisiRaporuTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Damga Vergisi Raporu',
+                                    id: 'DamgaVergisiRaporuTab',
+                                    itemId: 'DamgaVergisiRaporuTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [DamgaVergisiRaporuGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.DefteriKebirRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Defter-i Kebir Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('DefteriKebirRaporuTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Defter-i Kebir Raporu',
+                                    id: 'DefteriKebirRaporuTab',
+                                    itemId: 'DefteriKebirRaporuTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [DefteriKebirRaporuGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.StokMaliyetTakipRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Stok Maliyet Takip Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('StokMaliyetTakipTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Stok Maliyet Takip Raporu',
+                                    id: 'StokMaliyetTakipTab',
+                                    itemId: 'StokMaliyetTakipTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [StokMaliyetTakipGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.StokCikisTakipRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Stok Çıkış Takip Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('StokCikisTakipTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Stok Çıkış Takip Raporu',
+                                    id: 'StokCikisTakipTab',
+                                    itemId: 'StokCikisTakipTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [StokCikisTakipGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.StokCikisSarfMaliyeTakipRaporu))
+        {
+            <text>
+                    muhasebeRaporlariMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Stok Çıkış Sarf Maliye Takip Raporu',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('StokCikisSarfMaliyeTakipTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Stok Çıkış Sarf Maliye Takip Raporu',
+                                    id: 'StokCikisSarfMaliyeTakipTab',
+                                    itemId: 'StokCikisSarfMaliyeTakipTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [StokCikisSarfMaliyeTakipGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+
+
+        @**********************************************************************************@
+                                                    var duyuruIslemleriMenuItems = [];
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.DuyuruTanimlama))
+        {
+            <text>
+                    duyuruIslemleriMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Duyuru Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('DuyuruTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Duyuru Tanımlama',
+                                    id: 'DuyuruTanimlamaTab',
+                                    itemId: 'DuyuruTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [DuyuruTanimlamaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }@************************************************************************************************@
+               var satinAlmaTanimlamaMenuItems=[];
+        
+              @if (SessionHelper.YetkiKontrol(YetkiEnum.VarsayilanDosyaGorevlisiTanimlama))
+              {
+                  <text>
+                    satinAlmaTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Varsayılan Dosya Görevlisi  Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('VarsayilanDosyaGorevlisiTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Varsayılan Dosya Görevlisi Tanımlama',
+                                    id: 'VarsayilanDosyaGorevlisiTanimlamaTab',
+                                    itemId: 'VarsayilanDosyaGorevlisiTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [VarsayilanDosyaGorevlileriGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+              }        @if (SessionHelper.YetkiKontrol(YetkiEnum.VarsayilanKomisyonGorevlisiTanimlama))
+                       {
+                           <text>
+                    satinAlmaTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Varsayılan Komisyon Görevlisi  Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('VarsayilanKomisyonGorevlisiTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Varsayılan Komisyon Görevlisi Tanımlama',
+                                    id: 'VarsayilanKomisyonGorevlisiTanimlamaTab',
+                                    itemId: 'VarsayilanKomisyonGorevlisiTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [VarsayilanKomisyonGorevlileriGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }  @if (SessionHelper.YetkiKontrol(YetkiEnum.EsikDegerParasalLimitTanimlama))
+                          {
+                              <text>
+                    satinAlmaTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Eşik Değer Parasal Limit Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('EsikDegerParasalLimitTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Eşik Değer Parasal Limit Tanımlama',
+                                    id: 'EsikDegerParasalLimitTanimlamaTab',
+                                    itemId: 'EsikDegerParasalLimitTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [EsikDegerParasalLimitGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+                          }
+       
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.SatinAlmaOnTanim))
+        {
+            <text>
+                satinAlmaTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Satınalma Ön Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('SatinAlmaOnTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Satınalma Ön Tanımlama',
+                                    id: 'SatinAlmaOnTanimlamaTab',
+                                    itemId: 'SatinAlmaOnTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [SatinAlmaOnTanimGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+            @if (SessionHelper.YetkiKontrol(YetkiEnum.SartnameSozlesmeIlanTanimlari))
+            {
+            <text>
+                    satinAlmaTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Şartname / Sözleşme / İlan Tanımları',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('SartnameSozlesmeIlanTanimlariTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Şartname / Sözleşme / İlan Tanımları',
+                                    id: 'SartnameSozlesmeIlanTanimlariTab',
+                                    itemId: 'SartnameSozlesmeIlanTanimlariTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [SartnameSozlesmeIlanTanimlariGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+            }
+
+            @if (SessionHelper.YetkiKontrol(YetkiEnum.SatinalmaIhaleBelgeIslemleri))
+            {
+            <text>
+                    satinAlmaTanimlamaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Satinalma İhale Belge İşlemleri',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('SatinalmaIhaleBelgeIslemleriTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Satinalma İhale Belge İşlemleri',
+                                    id: 'SatinalmaIhaleBelgeIslemleriTab',
+                                    itemId: 'SatinalmaIhaleBelgeIslemleriTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [SatinalmaIhaleBelgeGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+            }
+     @************************************************************************************************@
+          var dogrudanTeminMenuItems = [];
+          @if (SessionHelper.YetkiKontrol(YetkiEnum.DogrudanTeminListesi))
+          {
+              <text>
+                    dogrudanTeminMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Doğrudan Temin Ekle',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('DogrudanTeminEkleTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Doğrudan Temin Ekle',
+                                    id: 'DogrudanTeminEkleTab',
+                                    itemId: 'DogrudanTeminEkleTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [DogrudanTeminEkle.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+          }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.DogrudanTeminListesi))
+                  {
+                      <text>
+                    dogrudanTeminMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Doğrudan Temin Listesi',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('DogrudanTeminListesiTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Doğrudan Temin Listesi',
+                                    id: 'DogrudanTeminListesiTab',
+                                    itemId: 'DogrudanTeminListesiTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [DogrudanTeminListesiGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+                  }      @************************************************************************************************@
+          var ihaleDosyaMenuItems = [];
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.IhaleDosyaListesi))
+          {
+              <text>
+                    ihaleDosyaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'İhale Dosya Ekle',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('IhaleDosyaEkleTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'İhale Dosya Ekle',
+                                    id: 'IhaleDosyaEkleTab',
+                                    itemId: 'IhaleDosyaEkleTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                items: [IhaleDosyaEkle.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+          }@if (SessionHelper.YetkiKontrol(YetkiEnum.IhaleDosyaListesi))
+          {
+              <text>
+                    ihaleDosyaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'İhale Dosya Listesi',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('IhaleDosyaListesiTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'İhale Dosya Listesi',
+                                    id: 'IhaleDosyaListesiTab',
+                                    itemId: 'IhaleDosyaListesiTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [IhaleDosyaListesiGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+          }
+           @if (SessionHelper.YetkiKontrol(YetkiEnum.IhaleDosyaListesi))
+          {
+              <text>
+                    ihaleDosyaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Satınalma İstatistikleri',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('SatinalmaIstatistikleriTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Satınalma İstatistikleri',
+                                    id: 'SatinalmaIstatistikleriTab',
+                                    itemId: 'SatinalmaIstatistikleriTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [SatinAlmaRaporlarSatinalmaIstatistikleriGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+          }
+           @if (SessionHelper.YetkiKontrol(YetkiEnum.IhaleDosyaListesi))
+          {
+              <text>
+                    ihaleDosyaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Sözleşme Miktar Takip',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+
+                            var tab = tabPanel.getChildByElement('SozlesmeMiktarTakipTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Sözleşme Miktar Takip',
+                                    id: 'SozlesmeMiktarTakipTab',
+                                    itemId: 'SozlesmeMiktarTakipTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [SatinAlmaRaporlarSozlesmeMiktarTakipGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+          }
+           @if (SessionHelper.YetkiKontrol(YetkiEnum.IhaleDosyaListesi))
+          {
+              <text>
+                    ihaleDosyaMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Münferit Dosya Ekle',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('MunferitDosyaEkleTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Münferit Dosya Ekle',
+                                    id: 'MunferitDosyaEkleTab',
+                                    itemId: 'MunferitDosyaEkleTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [MunferitDosyaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+          }
+
+        @************************************************************************************************@
+          var faturaAboneMenuItems = [];
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.AboneTanimlari))
+        {
+            <text>
+                    faturaAboneMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Abone Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('AboneTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Abone Tanımlama',
+                                    id: 'AboneTanimlamaTab',
+                                    itemId: 'AboneTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [AboneTanimlariGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.FaturaDonemleriTanimlama))
+        {
+            <text>
+                    faturaAboneMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Abone Dönem Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('AboneDonemTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Abone Dönem Tanımlama',
+                                    id: 'AboneDonemTanimlamaTab',
+                                    itemId: 'AboneDonemTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [AboneDonemTanimGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.FaturaTanimTakip))
+        {
+            <text>
+                    faturaAboneMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Abone Fatura Tanımlama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('AboneFaturaTanimlamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Abone Fatura Tanımlama',
+                                    id: 'AboneFaturaTanimlamaTab',
+                                    itemId: 'AboneFaturaTanimlamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [AboneFaturaGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+        }
+
+        @************************************************************************************************@
+              var birlikStokMenuItems = [];
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.TalepDegerlendirmeListesi))
+                {
+                    <text>
+                    birlikStokMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Talep Değerlendirme',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('TalepDegerlendirmeTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Talep Değerlendirme',
+                                    id: 'TalepDegerlendirmeTab',
+                                    itemId: 'TalepDegerlendirmeTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [TalepDegerlendirmeListesiGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+                }
+                  @if (SessionHelper.YetkiKontrol(YetkiEnum.TalepToplamaListesi))
+                  {
+                      <text>
+                    birlikStokMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Talep Toplama',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('TalepToplamaTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Talep Toplama',
+                                    id: 'TalepToplamaTab',
+                                    itemId: 'TalepToplamaTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [TalepToplamaListesiGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+                  }
+      @************************************************************************************************@
+                 var siparisTeslimatMenuItems = [];
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.SiparisListesi))
+                {
+                    <text>
+                    siparisTeslimatMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Sipariş Listesi',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('SiparisListesiTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Sipariş Listesi',
+                                    id: 'SiparisListesiTab',
+                                    itemId: 'SiparisListesiTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [SiparisListesiGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+                }
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.SiparisListesi))
+                {
+                    <text>
+                    siparisTeslimatMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Teslimat Listesi',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('TeslimatListesiTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Teslimat Listesi',
+                                    id: 'TeslimatListesiTab',
+                                    itemId: 'TeslimatListesiTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [TeslimatListesiGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+                }        
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.FaturaEdilmisTeslimatlarListesi))
+                {
+                    <text>
+                    siparisTeslimatMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Fatura Edilmiş Teslimatlar',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('FaturaEdilmisTeslimatlarTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Fatura Edilmiş Teslimatlar',
+                                    id: 'FaturaEdilmisTeslimatlarTab',
+                                    itemId: 'FaturaEdilmisTeslimatlarTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [FaturaEdilmisTeslimatlarGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+                }               
+        @if (SessionHelper.YetkiKontrol(YetkiEnum.SiparisListesi))
+                {
+                    <text>
+                    siparisTeslimatMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Muayene Kabul',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('MuayeneKabulTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Muayene Kabul',
+                                    id: 'MuayeneKabulTab',
+                                    itemId: 'MuayeneKabulTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [MuayeneKabulGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+                } 
+            @if (SessionHelper.YetkiKontrol(YetkiEnum.SiparisListesi))
+                {
+                    <text>
+                    siparisTeslimatMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Sipariş Takip/Onay',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('SiparisTakipOnayTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Sipariş Takip/Onay',
+                                    id: 'SiparisTakipOnayTab',
+                                    itemId: 'SiparisTakipOnayTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [SiparisTakipOnayGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+                }
+
+
+      @************************************************************************************************@
+            var yaklasikMaliyetMenuItems = [];
+
+                       @if (SessionHelper.YetkiKontrol(YetkiEnum.YaklasikMaliyetListesi))
+                       {
+                           <text>
+            yaklasikMaliyetMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Yaklaşık Maaliyet Ekle',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('YaklasikMaliyetEkleTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Yaklaşık Maliyet Ekle',
+                                    id: 'YaklasikMaliyetEkleTab',
+                                    itemId: 'YaklasikMaliyetEkleTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [YaklasikMaliyetEkle.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+                       }
+            @if (SessionHelper.YetkiKontrol(YetkiEnum.YaklasikMaliyetListesi))
+                {
+                    <text>
+            yaklasikMaliyetMenuItems.push({
+                        iconCls: 'customicon-page',
+                        text: 'Yaklaşık Maliyet Dosyaları',
+                        handler: function (item, e) {
+                            var tabPanel = Ext.getCmp('MainTabPanel');
+                            var tab = tabPanel.getChildByElement('TanimliYMDosyalariTab');
+                            if (tab == null) {
+                                tab = tabPanel.add({
+                                    closable: true,
+                                    title: 'Tanımlı YM Dosyaları',
+                                    id: 'TanimliYMDosyalariTab',
+                                    itemId: 'TanimliYMDosyalariTab',
+                                    layout: {
+                                        type: 'vbox',
+                                        align: 'stretch'
+                                    },
+                                    items: [YasklasikMaaliyetTanimliYMDosyalariGetir.pencereGetir()]
+                                });
+                            }
+                            tabPanel.setActiveTab(tab);
+                        }
+                    });
+            </text>
+                }
+
+      @************************************************************************************************@
+         var insertIntoArray = function (arr, value) {
+                return arr.reduce((result, element, index, array) => {
+
+                    result.push(element);
+
+                    if (index < array.length - 1) {
+                        result.push(value);
+                    }
+
+                    return result;
+                }, []);
+            };
+
+            kullaniciIslemleriMenuItems = insertIntoArray(kullaniciIslemleriMenuItems, { xtype: 'menuseparator' });
+            kullaniciIslemleriMenuItems.push({ xtype: 'menuseparator' });
+
+            genelTanimlamaMenuItems = insertIntoArray(genelTanimlamaMenuItems, { xtype: 'menuseparator' });
+            genelTanimlamaMenuItems.push({ xtype: 'menuseparator' });
+
+            muhasebeIslemleriMenuItems = insertIntoArray(muhasebeIslemleriMenuItems, { xtype: 'menuseparator' });
+            muhasebeIslemleriMenuItems.push({ xtype: 'menuseparator' });
+
+            muhasebeRaporlariMenuItems = insertIntoArray(muhasebeRaporlariMenuItems, { xtype: 'menuseparator' });
+            muhasebeRaporlariMenuItems.push({ xtype: 'menuseparator' });
+
+            duyuruIslemleriMenuItems = insertIntoArray(duyuruIslemleriMenuItems, { xtype: 'menuseparator' });
+            duyuruIslemleriMenuItems.push({ xtype: 'menuseparator' });
+
+            Ext.tip.QuickTipManager.init();
+            Ext.create('Ext.container.Viewport',
+                {
+                    border: false,
+                    renderTo: Ext.getBody(),
+                    layout: {
+                        type: 'vbox',
+                        align: 'stretch'
+                    },
+                    items: [
+                        {
+                            border: false,
+                            tbar: {
+                                border: false,
+                                xtype: 'toolbar',
+                                items: [
+                                    {
+                                        style: 'font-weight:bold;',
+                                        xtype: 'tbtext',
+                                        text: '@(SessionHelper.DefaultSession.HastaneAdi)'
+                                        , border: false
+                                    }, {
+                                        xtype: 'tbfill'
+                                    }, {
+                                        xtype: 'tbtext',
+                                        text: 'Hoş Geldin '
+                                    }, {
+                                        xtype: 'tbtext',
+                                        text: '@(SessionHelper.DefaultSession.AdSoyad)'
+                                    }, {
+                                        xtype: 'tbspacer'
+                                    }, {
+                                        xtype: 'tbseparator'
+                                    }, {
+                                        xtype: 'tbspacer'
+                                    }, {
+                                        xtype: 'tbtext',
+                                        text: 'Ip Adresiniz: '
+                                    }, {
+                                        style: 'font-weight:bold; color:red;',
+                                        xtype: 'tbtext',
+                                        text: '10.116.35.222'
+                                    }, {
+                                        xtype: 'tbspacer'
+                                    }, {
+                                        xtype: 'tbseparator'
+                                    }, {
+                                        xtype: 'tbspacer'
+                                    }, {
+                                        iconCls: 'customicon-custom-anasayfa',
+                                        tooltip: 'Anasayfa',
+                                        listeners: {
+                                            click: {
+                                                fn: function (item, e) {
+                                                    window.location = '/';
+                                                }
+                                            }
+                                        }
+                                    }, {
+                                        xtype: 'tbspacer'
+                                    }, {
+                                        xtype: 'tbseparator'
+                                    }, {
+                                        xtype: 'tbspacer'
+                                    }, {
+                                        iconCls: 'customicon-world_connect',
+                                        text: 'Hakkında',
+                                        menu: {
+                                            xtype: 'menu',
+                                            items: [
+                                                { xtype: 'tbtext', text: 'Uygulama Versiyon ' },
+                                                { style: 'font-weight:bold; color:red;', xtype: 'tbtext', text: '1.0.2206.0 - Production' },
+                                                { xtype: 'tbtext', text: 'Uygulama Ip ' },
+                                                { style: 'font-weight:bold; color:red;', xtype: 'tbtext', text: '10.116.68.226' }]
+                                        }
+                                    }, {
+                                        xtype: 'tbspacer'
+                                    }, {
+                                        xtype: 'tbseparator'
+                                    }, {
+                                        xtype: 'tbspacer'
+                                    }, {
+                                        iconCls: 'customicon-door_out',
+                                        tooltip: 'Çıkış yap',
+                                        listeners: {
+                                            click: {
+                                                fn: function (item, e) {
+                                                    window.location = '/Account/LogOff';
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }, {
+                            id: 'Main',
+                            border: false,
+                            flex: 1,
+                            layout: {
+                                type: 'hbox',
+                                align: 'stretch'
+                            },
+                            items: [{
+                                xtype: 'panel',
+                                layout: 'accordion',
+                                animate: true,
+                                border: false,
+                                width: 250,
+                                items: [{
+                                    xtype: 'panel',
+                                    layout: {
+                                        type: 'accordion',
+                                        align: 'stretch'
+                                    },
+                                    componentCls: 'whitebg',
+                                    border: false,
+                                    title: 'Kullanıcı İşlemleri',
+                                    iconCls: 'customicon-user',
+                                    items: {
+                                        floating: false,
+                                        border: false,
+                                        header: {
+                                            hidden: true
+                                        },
+                                        xtype: "menu",
+                                        items: kullaniciIslemleriMenuItems
+                                    }
+                                }, {
+                                    xtype: 'panel',
+                                    layout: {
+                                        type: 'accordion',
+                                        align: 'stretch'
+                                    },
+                                    componentCls: 'whitebg',
+                                    border: false,
+                                    title: 'Genel Tanımlamalar',
+                                    iconCls: 'customicon-user',
+                                    items: {
+                                        floating: false,
+                                        border: false,
+                                        header: {
+                                            hidden: true
+                                        },
+                                        xtype: "menu",
+                                        items: genelTanimlamaMenuItems
+                                    }
+                                },
+                                {
+                                    xtype: 'panel',
+                                    layout: {
+                                        type: 'accordion',
+                                        align: 'stretch'
+                                    },
+                                    componentCls: 'whitebg',
+                                    border: false,
+                                    title: 'Satın Alma Tanımlamalar',
+                                    iconCls: 'customicon-user',
+                                    items: {
+                                        floating: false,
+                                        border: false,
+                                        header: {
+                                            hidden: true
+                                        },
+                                        xtype: "menu",
+                                        items: satinAlmaTanimlamaMenuItems
+                                    }
+                                }
+                                    ,{
+                                        xtype: 'panel',
+                                        layout: {
+                                            type: 'accordion',
+                                            align: 'stretch'
+                                        },
+                                        componentCls: 'whitebg',
+                                        border: false,
+                                        title: 'Talep İşlemleri',
+                                        iconCls: 'customicon-user',
+                                        items: {
+                                            floating: false,
+                                            border: false,
+                                            header: {
+                                                hidden: true
+                                            },
+                                            xtype: "menu",
+                                             items: talepIslemleriMenuItems
+                                        }
+                                    },
+
+                                {
+                                    xtype: 'panel',
+                                    layout: {
+                                        type: 'accordion',
+                                        align: 'stretch'
+                                    },
+                                    componentCls: 'whitebg',
+                                    border: false,
+                                    title: 'İhale İşlemleri',
+                                    iconCls: 'customicon-user',
+                                    items: {
+                                        floating: false,
+                                        border: false,
+                                        header: {
+                                            hidden: true
+                                        },
+                                        xtype: "menu",
+                                        items: ihaleDosyaMenuItems
+                                    }
+                                }, {
+                                    xtype: 'panel',
+                                    layout: {
+                                        type: 'accordion',
+                                        align: 'stretch'
+                                    },
+                                    componentCls: 'whitebg',
+                                    border: false,
+                                    title: 'Doğrudan Temin İşlemleri',
+                                    iconCls: 'customicon-user',
+                                    items: {
+                                        floating: false,
+                                        border: false,
+                                        header: {
+                                            hidden: true
+                                        },
+                                        xtype: "menu",
+                                        items: dogrudanTeminMenuItems
+                                    }
+                                }, {
+                                    xtype: 'panel',
+                                    layout: {
+                                        type: 'accordion',
+                                        align: 'stretch'
+                                    },
+                                    componentCls: 'whitebg',
+                                    border: false,
+                                    title: 'Birlik Stok',
+                                    iconCls: 'customicon-user',
+                                    items: {
+                                        floating: false,
+                                        border: false,
+                                        header: {
+                                            hidden: true
+                                        },
+                                        xtype: "menu",
+                                         items: birlikStokMenuItems
+                                    }
+                                }, {
+                                    xtype: 'panel',
+                                    layout: {
+                                        type: 'accordion',
+                                        align: 'stretch'
+                                    },
+                                    componentCls: 'whitebg',
+                                    border: false,
+                                    title: 'Yaklaşık Maliyet Araştırması',
+                                    iconCls: 'customicon-user',
+                                    items: {
+                                        floating: false,
+                                        border: false,
+                                        header: {
+                                            hidden: true
+                                        },
+                                        xtype: "menu",
+                                        items: yaklasikMaliyetMenuItems
+                                    }
+                                }, {
+                                    xtype: 'panel',
+                                    layout: {
+                                        type: 'accordion',
+                                        align: 'stretch'
+                                    },
+                                    componentCls: 'whitebg',
+                                    border: false,
+                                    title: 'Sipariş – Teslimat',
+                                    iconCls: 'customicon-user',
+                                    items: {
+                                        floating: false,
+                                        border: false,
+                                        header: {
+                                            hidden: true
+                                        },
+                                        xtype: "menu",
+                                          items: siparisTeslimatMenuItems
+                                    }
+                                }, {
+                                    xtype: 'panel',
+                                    layout: {
+                                        type: 'accordion',
+                                        align: 'stretch'
+                                    },
+                                    componentCls: 'whitebg',
+                                    border: false,
+                                    title: 'Muhasebe İşlemleri',
+                                    iconCls: 'customicon-user',
+                                    items: {
+                                        floating: false,
+                                        border: false,
+                                        header: {
+                                            hidden: true
+                                        },
+                                        xtype: "menu",
+                                        items: muhasebeIslemleriMenuItems
+                                    }
+                                }, {
+                                    xtype: 'panel',
+                                    layout: {
+                                        type: 'accordion',
+                                        align: 'stretch'
+                                    },
+                                    componentCls: 'whitebg',
+                                    border: false,
+                                    title: 'Muhasebe Raporları',
+                                    iconCls: 'customicon-user',
+                                    items: {
+                                        floating: false,
+                                        border: false,
+                                        header: {
+                                            hidden: true
+                                        },
+                                        xtype: "menu",
+                                        items: muhasebeRaporlariMenuItems
+                                    }
+                                }, {
+                                    xtype: 'panel',
+                                    layout: {
+                                        type: 'accordion',
+                                        align: 'stretch'
+                                    },
+                                    componentCls: 'whitebg',
+                                    border: false,
+                                    title: 'Fatura/Abone İşlemleri',
+                                    iconCls: 'customicon-user',
+                                    items: {
+                                        floating: false,
+                                        border: false,
+                                        header: {
+                                            hidden: true
+                                        },
+                                        xtype: "menu",
+                                        items: faturaAboneMenuItems
+                                    }
+                                }, {
+                                    xtype: 'panel',
+                                    layout: {
+                                        type: 'accordion',
+                                        align: 'stretch'
+                                    },
+                                    componentCls: 'whitebg',
+                                    border: false,
+                                    title: 'Duyuru İşlemleri',
+                                    iconCls: 'customicon-user',
+                                    items: {
+                                        floating: false,
+                                        border: false,
+                                        header: {
+                                            hidden: true
+                                        },
+                                        xtype: "menu",
+                                        items: duyuruIslemleriMenuItems
+                                    }
+                                }
+                                ]
+                            }, {
+                                xtype: 'tabpanel',
+                                id: 'MainTabPanel',
+                                activeTab: 0,
+                                flex: 1,
+                                bodyPadding: 5,
+                                fullscreen: true,
+                                defaults: {
+                                    styleHtmlContent: true,
+                                    autoScroll: true
+                                },
+                                items: [
+                                    {
+                                        id: 'DashboardTab',
+                                        title: 'Dashboard',
+                                        html: 'Dashboard'
+                                    }]
+                            }]
+                        }]
+                });
+        });
+
+</script>
+</head>
+<body>
+    @RenderBody()
+</body>
+</html>

@@ -1,0 +1,38 @@
+﻿
+@using ClinicWeb.Repository.Helpers
+<div class="row" style="margin-left: 5px; margin-right: 5px;">
+    <div class="box box-primary">
+        <div class="box-body">
+            <input type="hidden" class="form-control" id="sessionsifre"  value="@SessionHelper.DefaultSession.Sifre">
+            <div class="row">
+                <div class="col-md-12" style="margin:5px">
+                    <div class="form-group">
+                        <label for="eskisifre" class="col-sm-3 control-label">Eski Şifre</label>
+                        <div class="col-sm-9">
+                            <input type="password" class="form-control" id="eskisifre" placeholder="Eski Şifre...">
+                        </div>
+                    </div>
+                </div>        
+                <div class="col-md-12" style="margin:5px">
+                    <div class="form-group">
+                        <label for="yenisifre" class="col-sm-3 control-label">Yeni Şifre</label>
+                        <div class="col-sm-9">
+                            <input type="password" class="form-control" id="yenisifre" placeholder="Yeni Şifre...">
+                        </div>
+                    </div>
+                </div>     
+                <div class="col-md-12" style="margin:5px">
+                    <div class="form-group">
+                        <label for="yenisifretekrar" class="col-sm-3 control-label">Yeni Şifre Tekrar</label>
+                        <div class="col-sm-9">
+                            <input type="password" class="form-control" id="yenisifretekrar" placeholder="Yeni Şifre Tekrar...">
+                        </div>
+                    </div>
+                </div>
+        
+            </div>
+            <button type="button" id="btnSifreDegistir" class="btn btn-success pull-right" style="margin-right:10px;"><span class="glyphicon glyphicon-lock"></span> Şifre Değiştir</button> <br />
+        </div>
+    </div>
+</div>
+<script src="~/PageJs/KullaniciSifreDegistirme.js"></script>

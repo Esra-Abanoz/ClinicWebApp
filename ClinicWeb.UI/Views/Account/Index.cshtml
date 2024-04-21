@@ -1,0 +1,230 @@
+﻿
+@{
+    Layout = null;
+}
+<html>
+<head>
+    <title>Klinik Web</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--===============================================================================================-->
+    <link rel="icon" type="image/png" href="Login/images/icons/favicon.ico" />
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="~/Login/vendor/bootstrap/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="~/Login/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+    <!--===============================================================================================-->
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="~/Login/vendor/css-hamburgers/hamburgers.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="~/Login/vendor/select2/select2.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="~/Login/css/util.css">
+    <link rel="stylesheet" type="text/css" href="~/Login/css/main.css">
+    <!--===============================================================================================-->
+    <link href="~/Theme/css/jquery.Wload.css" rel="stylesheet" />
+    <link href="~/Login/vendor/jquery/ui/1.12.1/jquery-ui.min.css" rel="stylesheet" />
+    <script src="~/Login/vendor/jquery/jquery-3.2.1.min.js"></script>
+    <script src="~/Login/vendor/jquery/ui/1.12.1/jquery-ui.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $(window).on("load resize", function () {
+                if (screen.width === window.innerWidth) {
+                    $(".wrap-login100").css("zoom", "1");
+                } else if (screen.width > window.innerWidth) {
+                    if (window.innerWidth >= 1280 && window.innerWidth <= 1920) {
+                        $(".wrap-login100").css("zoom", ".8");
+                    }
+                    if (window.innerWidth >= 960 && window.innerWidth <= 1280) {
+                        $(".wrap-login100").css("zoom", ".5");
+                    }
+                    if (window.innerWidth >= 640 && window.innerWidth <= 768) {
+                        $(".wrap-login100").css("zoom", ".4");
+                    }
+                } else {
+                    $(".wrap-login100").css("zoom", "1");
+                }
+            });
+
+            $("#username").autocomplete({
+                source: function( request, response ) {
+                    $.ajax({
+                        url: "@Html.Raw(Url.Action("KullaniciListesi","Account"))",
+                        dataType: "json",
+                        data: {
+                            term: request.term
+                        },
+                        success: function (data) {
+                            var newdata = [];
+                            for (var i = 0; i < data.length; i++) {
+                                newdata.push({ id: data[i].Value, value: data[i].Value, label: data[i].Title });
+                            }
+                            response(newdata);
+                        }
+                    });
+                },
+                minLength: 3
+            });
+        });
+    </script>
+
+</head>
+<body>
+<div class="limiter">
+    <div class="container-login100">
+        <div class="wrap-login100" style="height:700px !important">
+            <div class="login100-pic">
+                <img src="~/Login/images/lockscreen-bg.png" alt="IMG" style="width: 100%; height: 100%;">
+
+                <div>
+                    <b>Altiva </b> İhtiyaç Yönetim Bilgi Sistemi
+                    <p style="margin-bottom: 20px;"></p>
+                    <p>&nbsp;İhtiyaç Yönetim Bilgi Sistemi; kurumlara gelen evrakların,</p>
+                    <p>fiziksel dosyaların, mevcut arşivlerin ve belgelerin</p>
+                    <p> taranarak veya taranmış dosyaların sisteme </p>
+                    <p>aktarımı yapılarak kategorilere ayrılmış,</p>
+                    <p>standart arşiv dosya sistemlerine uyumlu, </p>
+                    <p>elektronik ortamda dosyanın erişim bilgileriyle </p>
+                    <p>(indeks, tarih, arşivdeki adres bilgileri) birlikte </p>
+                    <p> veritabanı oluşturarak ulaşılmasını sağlayan sistemidir.</p>
+                    <p></p>
+                </div>
+                   
+
+            </div>
+            <form class="login100-form validate-form">
+                <span class="login100-form-title">
+                    <b>Altiva</b> İhtiyaç Yönetim Bilgi Sistemi
+
+                </span>
+
+                <div class="wrap-input100 validate-input" data-validate="Kullanıcı Adı Girilmesi Zorunludur.">
+                    <input class="input100" type="text" id="username" placeholder="Kullanıcı Adı / Tc Kimlik" autocomplete="off">
+                    <span class="focus-input100"></span>
+                    <span class="symbol-input100">
+                        <i class="fa fa-user-circle-o" aria-hidden="true"></i>
+                    </span>
+                </div>
+
+                <div class="wrap-input100 validate-input" data-validate="Şifre Girilmesi Zorunludur.">
+                    <input class="input100" type="password" id="password" placeholder="Şifre ">
+                    <span class="focus-input100"></span>
+                    <span class="symbol-input100">
+                        <i class="fa fa-lock" aria-hidden="true"></i>
+                    </span>
+                </div>
+
+                <div class="container-login100-form-btn">
+                    <button class="login100-form-btn loginsubmit">
+                        <i class="fa fa-fw fa-lock"></i>  Oturum Aç
+                    </button>
+                </div>
+
+                <div class="text-center p-t-12">
+
+                    <a class="txt2" data-toggle="modal" data-target="#myModal" style="cursor: pointer">
+                        Şifremi Unuttum
+                    </a>
+
+
+
+                    @*<a class="txt2" data-toggle="modal" data-target="#modalSecim" style="cursor: pointer">
+                          aaaaaaaaaaaaaaaaaaaaa
+                        </a>*@
+                </div>
+
+                <div class="text-center p-t-136">
+                    <span class="txt1" style="border-top:1px solid #D7D7D7; padding-top:5px;">
+                        Copyright © @(DateTime.Now.Year) Prestij Yazılım A.Ş.
+                    </span>
+                    <p>
+                        <span class="txt1" style="border-bottom:1px solid #D7D7D7; padding-bottom:5px;">
+                            HBYS - Hastane Bilgi Yönetim Sistemi
+                        </span>
+                    </p>
+                </div>
+            </form>
+
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalSecim" role="dialog">
+
+    <div class="modal-dialog">
+
+        <form id="passforget"></form>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Çalışma Bölgesi Seçiniz</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <select class="form-control"  id="hastane" style="width: 100%">
+                        @{
+                            foreach (var item in Model.HastaneListesi)
+                            {
+                                <option value="@item.HastaneId">@item.HastaneAdi</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select class="form-control"  id="butce" style="width: 100%">
+                        @{
+                            foreach (var item in Model.ButceTuruListesi)
+                            {
+                                <option value="@item.Id">@item.ButceTuru</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select class="form-control"  id="yil" style="width: 100%">
+                        @{
+                            foreach (var item in Model.YilListesi)
+                            {
+                                <option value="@item.Yillar">@item.Yillar</option>
+                            }
+                        }
+                    </select>
+                </div>
+                    
+                    
+
+            </div>
+            <div class="modal-footer">
+                <button  class="btn btn-primary calismaGonder">Tamam</button>
+            </div>
+        </div>
+  
+    </div>
+</div>
+
+
+<!--end::Modal-->
+<!--===============================================================================================-->
+<!--===============================================================================================-->
+<script src="~/Login/vendor/bootstrap/js/bootstrap.min.js"></script>
+<script src="~/Theme/js/jquery.simply-toast.js"></script>
+<!--===============================================================================================-->
+<!--===============================================================================================-->
+<!--===============================================================================================-->
+   
+<script src="~/Theme/js/jquery.Wload.js"></script>
+
+<script src="~/Login/js/main.js"></script>
+</body>
+</html>
+<script type="text/javascript">
+    $(document).ready(function() {
+
+        $("#yil").val(new Date().getFullYear());
+    });
+    
+</script>

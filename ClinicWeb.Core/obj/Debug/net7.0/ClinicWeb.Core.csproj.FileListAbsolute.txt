@@ -1,0 +1,12 @@
+C:\projeme\ClinicWeb\ClinicWeb\ClinicWeb.Core\bin\Debug\net7.0\ClinicWeb.Core.deps.json
+C:\projeme\ClinicWeb\ClinicWeb\ClinicWeb.Core\bin\Debug\net7.0\ClinicWeb.Core.dll
+C:\projeme\ClinicWeb\ClinicWeb\ClinicWeb.Core\bin\Debug\net7.0\ClinicWeb.Core.pdb
+C:\projeme\ClinicWeb\ClinicWeb\ClinicWeb.Core\obj\Debug\net7.0\ClinicWeb.Core.csproj.AssemblyReference.cache
+C:\projeme\ClinicWeb\ClinicWeb\ClinicWeb.Core\obj\Debug\net7.0\ClinicWeb.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\projeme\ClinicWeb\ClinicWeb\ClinicWeb.Core\obj\Debug\net7.0\ClinicWeb.Core.AssemblyInfoInputs.cache
+C:\projeme\ClinicWeb\ClinicWeb\ClinicWeb.Core\obj\Debug\net7.0\ClinicWeb.Core.AssemblyInfo.cs
+C:\projeme\ClinicWeb\ClinicWeb\ClinicWeb.Core\obj\Debug\net7.0\ClinicWeb.Core.csproj.CoreCompileInputs.cache
+C:\projeme\ClinicWeb\ClinicWeb\ClinicWeb.Core\obj\Debug\net7.0\ClinicWeb.Core.dll
+C:\projeme\ClinicWeb\ClinicWeb\ClinicWeb.Core\obj\Debug\net7.0\refint\ClinicWeb.Core.dll
+C:\projeme\ClinicWeb\ClinicWeb\ClinicWeb.Core\obj\Debug\net7.0\ClinicWeb.Core.pdb
+C:\projeme\ClinicWeb\ClinicWeb\ClinicWeb.Core\obj\Debug\net7.0\ref\ClinicWeb.Core.dll

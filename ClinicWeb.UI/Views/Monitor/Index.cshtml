@@ -1,0 +1,83 @@
+﻿@{
+    Layout = null;
+}
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@using ClinicWeb.Repository.Helpers
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>SQL Monitör</title>
+    <script src="~/js/jquery-1.11.0.min.js"></script>
+    <script src="~/js/signalr.min.js"></script>
+    <link href="~/dist/css/notifIt.css" rel="stylesheet" />
+    <link href="~/Theme/css/jquery.Wload.css" rel="stylesheet" />
+    <link href="~/js/monitor/monitor.css" rel="stylesheet" />
+    <script src="~/Theme/js/jquery.Wload.js"></script>
+    <script src="~/dist/js/notifIt.min.js"></script>
+    <script src="~/js/syntaxhighlighter/shCore.js"></script>
+    <script src="~/js/syntaxhighlighter/shBrushSql.js"></script>
+    <link href="~/js/syntaxhighlighter/shCore.css" rel="stylesheet" />
+    <link href="~/js/syntaxhighlighter/shCoreDefault.css" rel="stylesheet" />
+    <script type="text/javascript">
+        var clientId = '@(HttpContextAccessor.HttpContext.Request.Cookies["ss-id"] != null ? HttpContextAccessor.HttpContext.Request.Cookies["ss-id"] : "")';
+        var redistenSilUrl = '../Monitor/RedistenSil?redisKey=?redisKey=';
+        var queryRunUrl = '../Monitor/QueryRun';
+        var getQueryUrl = '../Monitor/GetSqlQuery';
+        var sqlMonitorEnabledUrl = '../Monitor/SqlMonitorEnabled';
+    </script>
+    <script src="~/js/monitor/monitor.js"></script>
+
+</head>
+<body>
+<div style="width: 100% !important;">
+        <div id="header">
+            <div id="colm">
+                <button id='start_button'>Başlat</button>
+                <button id='stop_button' class="stop_button" style="margin-left: 5px;" disabled="disabled">Durdur</button>
+            </div>
+
+            <div id="headerTotalBar">
+                <div id="colm">
+                    <input class="filterText" id="search" placeholder="Filtrelenecek Kelimeyi Giriniz" style="width: 300px; float: left;">
+                    <button id="temizle" class="buttonclear" style="margin-left: 10px;float: left;">Temizle</button>
+                    <ul id="analiz" style="float: left">
+                        <li id="analiz">
+                            <a id="analiz-trigger" href="#">
+                                Analiz <span>▼</span>
+                            </a>
+                            <div id="analiz-content">
+                                <button id="totalSorgu" group="totalSorgu" text="Analiz" class="btn buttonclear analiz-content-button" style="margin-left:0 !important;">0 Toplam Sorgu</button>
+                                <button id="databasetotal" group="Database" text="Database Analizi" class="btn databasebutton analiz-content-button">0 Database</button>
+                                <button id="cachetotal" group="Redis" text="Redis Analizi" class="btn cachebutton analiz-content-button">0 Redis</button>
+                                <button id="hizliSorguTotal" group="hizliSorguTotal" text="Hızlı Sorgu Analizi" class="btn button-default analiz-content-button">
+                                    <div class="status_box box_color_green" style="margin-top:0 !important;"></div> 0 Sorgu Hızlı ( 0 ms ile 1000 ms arası )
+                                </button>
+                                <button id="ortaSorguTotal" group="ortaSorguTotal" text="Orta Sorgu Analizi" class="btn button-default analiz-content-button">
+                                    <div class="status_box box_color_yellow" style="margin-top:0 !important;"></div> 0 Sorgu Normal ( 1000 ms ile 3000 ms arası )
+                                </button>
+                                <button id="yavasSorguTotal" group="yavasSorguTotal" text="Yavaş Sorgu Analizi" class="btn button-default analiz-content-button">
+                                    <div class="status_box box_color_red" style="margin-top:0 !important;"></div> 0 Sorgu Yavaş ( 3000 ms üzeri )
+                                </button>
+                            </div>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div id="sql-listesi">
+        </div>
+</div>
+    <button id="kilitBtn" onclick="kilidiAc()">Kilidi Aç</button>
+    <script type="text/javascript">MonutorAktifEt(true);</script>
+    @if (SessionHelper.DefaultSession.Admin!=2)
+    {
+        <button id="kilitBtn" onclick="kilidiAc()">Kilidi Aç</button>
+    }
+    else
+    {
+        <script type="text/javascript">MonutorAktifEt(true);</script>
+    }
+</body>
+</html>
